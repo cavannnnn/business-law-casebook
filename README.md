@@ -1,7 +1,7 @@
-# Business Law · 十个主题案例复习
+# Business Law 逐页双语学习册
 
-面向课程复习的中英对照互动笔记：十个商业法律案例、关键词、图解与自测。
+公开网页：<https://cavannnnn.github.io/business-law-casebook/>
 
-本仓库只包含网页成品，不含原始课件 PDF。笔记由课程材料整理，章节和成绩安排应以教师当次公布版本为准。
+首页按原文件顺序展示五份课件共 110 页：Syllabus 6 页、Week 01 15 页、Week 02 19 页、Week 03 35 页、Week 04 35 页。每页有原 PDF 页面图像、可复制英文、中文译读、逐页讲解和相关英文法律词汇；原 PDF 也可下载。
 
-直接阅读：[GitHub Pages 网页](https://cavannnnn.github.io/business-law-casebook/)
+[主题导读](overview.html) 保留原先的专题复习版。逐页原件与译读由静态 JSON 加载，无需账号或服务器。
