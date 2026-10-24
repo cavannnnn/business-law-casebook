@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="reader.css">
-  <script src="reader.js" defer></script>
+  <link rel="stylesheet" href="reader.css?v=2">
+  <script src="reader.js?v=2" defer></script>
 </head>
 <body>
   <a class="skip" href="#study">跳到本页内容</a>
@@ -28,7 +28,7 @@
       <div class="sidebar-top">
         <div class="eyebrow">THE COMPLETE READER</div>
         <h1>一页不漏，<br><em>一点点读懂。</em></h1>
-        <p>左边是课件原页，右边是中文译读和老师讲解。按原文件顺序阅读，图、表、案例和课堂问题都能逐页核对。</p>
+        <p>左边核对课件原页，右边逐段读英文原文和中文解释。按原文件顺序阅读，图、表、案例和课堂问题都能逐页核对。</p>
       </div>
       <div class="doc-list" id="docList" role="navigation" aria-label="选择文件"></div>
       <div class="sidebar-divider"></div>
@@ -45,6 +45,7 @@
           <div class="eyebrow" id="sectionEyebrow">LOADING THE READER</div>
           <h2 id="pageTitle">正在打开学习册…</h2>
           <p id="pageSummary" class="page-summary">正在整理原页与中文译读。</p>
+          <a class="jump-pairs" href="#translationTitle">跳到英文＋中文对照 ↓</a>
         </div>
         <a id="downloadPdf" class="download" href="#" download>下载原 PDF <span aria-hidden="true">↓</span></a>
       </div>
@@ -56,14 +57,15 @@
           <details class="english-details"><summary>展开可复制英文原文 <span>用于查找与复习</span></summary><div id="englishText" class="english-text"></div></details>
         </article>
         <article class="translation-panel" aria-labelledby="translationTitle">
-          <div class="panel-heading"><span class="panel-icon coral">02</span><div><span class="kicker">CHINESE READING</span><h3 id="translationTitle">逐页中文译读</h3></div></div>
-          <div class="translation-scroll"><div id="chineseText" class="chinese-text"></div></div>
-          <div class="professor-card"><div class="professor-label"><span>✦</span> 教授在旁边说</div><p id="professorNote"></p></div>
+          <div class="panel-heading"><span class="panel-icon coral">02</span><div><span class="kicker">ENGLISH + CHINESE</span><h3 id="translationTitle">原文逐段对照</h3></div></div>
+          <div class="professor-card"><div class="professor-label"><span>✦</span> 先听老师讲这一页</div><p id="professorNote"></p></div>
+          <div class="pair-intro">按课件原页的文字顺序排列。每段先读 <strong>英文原文</strong>，紧接着看 <strong>中文译读</strong>；页内图像仍以左侧原页为准。</div>
+          <div id="segmentList" class="segment-list"></div>
           <div class="term-section" id="termSection"><div class="term-heading">这一页的关键词 <span>KEY TERMS</span></div><div class="term-list" id="termList"></div></div>
         </article>
       </div>
       <div class="nav-bottom"><button class="nav-button" id="prevPage" type="button"><span aria-hidden="true">←</span> 上一页</button><span class="nav-center" id="navCenter">按原文件顺序阅读</span><button class="nav-button next" id="nextPage" type="button">下一页 <span aria-hidden="true">→</span></button></div>
-      <div class="accuracy-note"><strong>阅读说明</strong>　左侧图像是 PDF 原页，包含图形、表格及图片中的文字；右侧是按页翻译的辅助译读与讲解。自动文字识别和译读可能有个别排版或术语误差，遇到歧义请以原页为准。</div>
+      <div class="accuracy-note"><strong>阅读说明</strong>　英文对照取自 PDF 中可提取的原文，左侧原页还包含图形、表格及图片中的文字。中文译读帮助理解；扫描图像与自动翻译可能有误差，遇到歧义请以原 PDF 为准。</div>
     </section>
   </main>
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="原页放大图" hidden><button id="closeLightbox" class="lightbox-close" type="button" aria-label="关闭放大图">×</button><img id="lightboxImage" src="" alt="放大的课件原页"></div>

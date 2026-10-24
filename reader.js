@@ -11,6 +11,12 @@ const $ = id => document.getElementById(id);
 function paragraphText(element, value){ element.textContent = value || '本页以左侧原图为准。'; }
 function make(tag, className, text){ const node=document.createElement(tag); if(className) node.className=className; if(text!==undefined) node.textContent=text; return node; }
 function validPage(doc, page){ return Math.min(doc.pages,Math.max(1,Number(page)||1)); }
+function alignActiveStrip(id){
+  const host=$(id),active=host.querySelector('.active');
+  if(!active||host.scrollWidth<=host.clientWidth)return;
+  const h=host.getBoundingClientRect(),a=active.getBoundingClientRect();
+  host.scrollLeft+=a.left-h.left-(h.width-a.width)/2;
+}
 function pickInitial(){
   const query=new URLSearchParams(location.search);
   const saved=JSON.parse(localStorage.getItem('business-law-reader-position')||'null');
@@ -27,10 +33,7 @@ function renderDocs(){
     button.setAttribute('aria-current',doc===currentDoc?'page':'false');
     button.addEventListener('click',()=>show(doc,1)); host.append(button);
   });
-  requestAnimationFrame(()=>{
-    const active=host.querySelector('.active');
-    if(active) host.scrollLeft=active.offsetLeft-host.offsetLeft-12;
-  });
+  requestAnimationFrame(()=>alignActiveStrip('docList'));
 }
 function renderPageGrid(){
   const host=$('pageGrid'); host.replaceChildren(); $('pageCount').textContent=`${currentDoc.pages} 页`;
@@ -41,13 +44,10 @@ function renderPageGrid(){
     if(page===currentPage) button.setAttribute('aria-current','page');
     button.addEventListener('click',()=>show(currentDoc,page)); host.append(button);
   }
-  requestAnimationFrame(()=>{
-    const active=host.querySelector('button.active');
-    if(active) host.scrollLeft=active.offsetLeft-host.offsetLeft-12;
-  });
+  requestAnimationFrame(()=>alignActiveStrip('pageGrid'));
 }
 async function load(doc){
-  if(!cache.has(doc.id)) cache.set(doc.id,fetch(`data/${doc.id}.json`).then(response=>{if(!response.ok)throw new Error(`无法读取 ${doc.id}`);return response.json()}));
+  if(!cache.has(doc.id)) cache.set(doc.id,fetch(`data/${doc.id}.json?v=2`).then(response=>{if(!response.ok)throw new Error(`无法读取 ${doc.id}`);return response.json()}));
   return cache.get(doc.id);
 }
 function renderTerms(page){
@@ -57,6 +57,29 @@ function renderTerms(page){
     const card=make('div','term-card'); const strong=make('strong','',term.en); const zh=make('span','',term.zh); const explanation=make('p','',term.explanation);
     card.append(strong,zh,explanation);host.append(card);
   });
+}
+function renderSegments(page){
+  const host=$('segmentList');host.replaceChildren();
+  const segments=page.segments||[];
+  if(!segments.length){host.append(make('p','segment-loading','本页的逐段对照暂时无法读取。'));return}
+  segments.forEach((segment,index)=>{
+    const compact=segment.en.trim().length<65 && !/[.!?。！？]/.test(segment.en);
+    const row=make('section','segment-pair'+(compact?' compact':''));
+    row.setAttribute('aria-label','第 '+(index+1)+' 段原文及解释');
+    const number=make('div','segment-number',String(index+1).padStart(2,'0'));
+    const en=make('div','segment-original');
+    en.append(make('div','segment-label','ORIGINAL · 英文原文'),make('p','',segment.en));
+    const zh=make('div','segment-translation');
+    zh.append(make('div','segment-label','中文译读 · 解释'),make('p','',segment.zh));
+    row.append(number,en,zh);
+    if(segment.explain) row.append(make('p','segment-explain',segment.explain));
+    host.append(row);
+  });
+  if(page.visualNote){
+    const visual=make('aside','visual-note');
+    visual.append(make('strong','','图像说明 · 非原文'),make('p','',page.visualNote));
+    host.append(visual);
+  }
 }
 async function show(doc,page,scroll=true){
   currentDoc=doc;currentPage=validPage(doc,page);const myRequest=++requestNumber;
@@ -73,19 +96,20 @@ async function show(doc,page,scroll=true){
   $('nextPage').disabled=doc===DOCUMENTS.at(-1)&&currentPage===doc.pages;
   const newUrl=new URL(location.href);newUrl.searchParams.set('doc',doc.id);newUrl.searchParams.set('page',currentPage);history.replaceState(null,'',newUrl);
   localStorage.setItem('business-law-reader-position',JSON.stringify({doc:doc.id,page:currentPage}));
-  $('chineseText').textContent='正在打开本页译读…';$('englishText').textContent='';$('professorNote').textContent='';$('termSection').hidden=true;
+  $('segmentList').replaceChildren(make('p','segment-loading','正在打开逐段英文与中文解释…'));
+  $('englishText').textContent='';$('professorNote').textContent='';$('termSection').hidden=true;
   try{
     const data=await load(doc); if(myRequest!==requestNumber)return;
     const item=data.pages[currentPage-1];if(!item)throw new Error('这一页的资料未找到');
     $('pageImage').src=item.image;$('pageImage').alt=`${doc.title}，原始 PDF 第 ${currentPage} 页`;
     $('lightboxImage').src=item.image;
     paragraphText($('englishText'),item.english);
-    paragraphText($('chineseText'),item.chinese);
+    renderSegments(item);
     paragraphText($('professorNote'),item.note);
     renderTerms(item);
     if(scroll) $('study').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
   }catch(error){
-    if(myRequest===requestNumber) $('chineseText').textContent=`本页载入失败：${error.message}。请刷新网页重试。`;
+    if(myRequest===requestNumber) $('segmentList').replaceChildren(make('p','segment-loading','本页载入失败：'+error.message+'。请刷新网页重试。'));
   }
 }
 function step(direction){
@@ -106,4 +130,5 @@ document.addEventListener('keydown',event=>{
   if(event.key==='ArrowRight')step(1);
 });
 window.addEventListener('popstate',()=>{const q=new URLSearchParams(location.search);const doc=DOCUMENTS.find(d=>d.id===q.get('doc'))||DOCUMENTS[0];show(doc,q.get('page'),false)});
+window.addEventListener('resize',()=>requestAnimationFrame(()=>{alignActiveStrip('docList');alignActiveStrip('pageGrid')}));
 const initial=pickInitial();show(initial.doc,initial.page,false);
